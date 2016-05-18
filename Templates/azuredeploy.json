@@ -1,0 +1,645 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccountType": {
+      "type": "string",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Standard_ZRS",
+        "Premium_LRS"
+      ],
+      "metadata": {
+        "description": "The type of the Storage Account created"
+      },
+      "defaultValue": "Standard_LRS"
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the Virtual Network to Create"
+      },
+      "defaultValue": "WKTAADEVFAM"
+    },
+    "VNETCIDR": {
+      "type": "string",
+      "defaultValue": "10.3.1.0/27"
+    },
+    "Subnet_FE_CIDR": {
+      "type": "string",
+      "defaultValue": "10.3.1.8/29"
+    },
+    "Subnet_BE_CIDR": {
+      "type": "string",
+      "defaultValue": "10.3.1.16/29"
+    },
+    "Subnet_UTIL_CIDR": {
+      "type": "string",
+      "defaultValue": "10.3.1.0/29"
+    },
+    "TSNicIPAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "The IP address of the new AD VM"
+      },
+      "defaultValue": "10.3.1.12"
+    },
+    "adNicIPAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "The IP address of the new AD VM"
+      },
+      "defaultValue": "10.3.1.4"
+    },
+    "publicIPAddressType": {
+      "type": "string",
+      "allowedValues": [
+        "Dynamic",
+        "Static"
+      ],
+      "metadata": {
+        "description": "The type of the public IP address used by the Load Balancer"
+      },
+      "defaultValue": "Dynamic"
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the Administrator of the new VMs and for the Domain Admin"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the Administrator account of the new VMs and for the Domain Admin"
+      }
+    },
+    "VMPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "prefix for vms to be created.  Example: wktaadevfam"
+      },
+      "defaultValue": "WKTAADEVFAM"
+    },
+    "adVMSize": {
+      "type": "string",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_DS1",
+        "Standard_D2_v2",
+        "Standard_DS2",
+        "Standard_D3_v2",
+        "Standard_DS3",
+        "Standard_D4_v2",
+        "Standard_DS4",
+        "Standard_D11_v2",
+        "Standard_DS11",
+        "Standard_D12_v2",
+        "Standard_DS12",
+        "Standard_D13_v2",
+        "Standard_DS13",
+        "Standard_D14_v2",
+        "Standard_DS14",
+        "Standard_A3"
+      ],
+      "metadata": {
+        "description": "The size of the VM Created"
+      },
+      "defaultValue": "Standard_A3"
+    },
+    "TSVMSize": {
+      "type": "string",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_DS1",
+        "Standard_D2_v2",
+        "Standard_DS2",
+        "Standard_D3_v2",
+        "Standard_DS3",
+        "Standard_D4_v2",
+        "Standard_DS4",
+        "Standard_D11_v2",
+        "Standard_DS11",
+        "Standard_D12_v2",
+        "Standard_DS12",
+        "Standard_D13_v2",
+        "Standard_DS13",
+        "Standard_D14_v2",
+        "Standard_DS14",
+        "Standard_A3"
+      ],
+      "metadata": {
+        "description": "The size of the VM Created"
+      },
+      "defaultValue": "Standard_A3"
+    },
+    "domainName": {
+      "type": "string",
+      "metadata": {
+        "description": "The FQDN of the AD Domain created "
+      }
+    },
+    "dnsPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "The DNS prefix for the public IP address used by the Load Balancer.  Example: wktaadevfam will result in PIP FQDN: wktaadevfam.centralus.cloudapp.net"
+      }
+    },
+    "rdpPort": {
+      "type": "int",
+      "metadata": {
+        "description": "The public RDP port for the VM"
+      },
+      "defaultValue": 3389
+    },
+    "quickStartAssetLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "The location of quickstart resources such as templates and DSC modules that the script is dependent"
+      },
+      "defaultValue": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/active-directory-new-domain/"
+    },
+    "assetLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "The location of resources such as templates and DSC modules that the script is dependent"
+      },
+      "defaultValue": "https://raw.githubusercontent.com/ChaseManhatton/FAMNetwork/master/"
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "storageAccountName": "[toLower(concat(parameters('VMPrefix'), '_Storage'))]",
+    "LBFE": "LBFE",
+    "LBBE": "LBBE",
+    "TSRDPNAT": "[concat(parameters('VMPrefix'), 'TSRDP')]",
+    "TSNicName": "[toLower(concat(parameters('VMPrefix'), 'TS1NIC'))]",
+    "adNicName": "[toLower(concat(parameters('VMPrefix'), 'AD1NIC'))]",
+    "TSVMName": "[concat(parameters('VMPrefix'), 'TS1')]",
+    "adVMName": "[concat(parameters('VMPrefix'), 'AD1')]",
+    "adSubnetName": "UTIL",
+    "TSSubnetName": "FE",
+    "publicIPAddressName": "[concat(parameters('VMPrefix'), 'LBPIP')]",
+    "TSAvailabilitySetName": "[toLower(concat(parameters('VMPrefix'), 'TS_ASet'))]",
+    "adAvailabilitySetName": "[toLower(concat(parameters('VMPrefix'), 'AD_ASet'))]",
+    "VnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "TSSubnetRef": "[concat(variables('VnetID'),'/subnets/',variables('TSSubnetName'))]",
+    "adSubnetRef": "[concat(variables('VnetID'),'/subnets/',variables('adSubnetName'))]",
+    "adNicId": "[resourceId('Microsoft.Network/networkInterfaces',variables('adNicName'))]",
+    "adIPConfigID": "[concat(variables('adNicId'),'/ipConfigurations/ipconfig1')]",
+    "LBName": "[concat(parameters('VMPrefix'), 'LB')]",
+    "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('LBName'))]",
+    "lbFEConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/',variables('LBFE'))]",
+    "RDPNATRuleID": "[concat(variables('lbID'),'/inboundNatRules/',variables('TSRDPNAT'))]",
+    "BEAddressPoolID": "[concat(variables('lbID'),'/backendAddressPools/',variables('LBBE'))]",
+    "adDataDisk": "[toLower(concat(variables('adVMName'), '-datadisk",
+    "TSDataDisk": "[toLower(concat(variables('TSVMName'), '-datadisk-1'))]",
+    "adDataDiskSize": 100,
+    "TSDataDiskSize": 100,
+    "vnetDNSTemplateUri": "[concat(parameters('assetLocation'),'vnet-with-dns.json')]",
+    "adModulesURL": "[concat(parameters('quickStartAssetLocation'),'CreateADPDC.ps1.zip')]",
+    "adConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC",
+    "apiVersion": "2015-06-15"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "tags": {
+        "displayName": "FAMStorageAccount"
+      },
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "accountType": "[parameters('storageAccountType')]"
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddressName')]",
+      "tags": {
+        "displayName": "FAMPublicIP"
+      },
+      "location": "[variables('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "[parameters('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsPrefix')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('adAvailabilitySetName')]",
+      "tags": {
+        "displayName": "FAMADAvailSet"
+      },
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('TSAvailabilitySetName')]",
+      "tags": {
+        "displayName": "FAMTSAvailSet"
+      },
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[variables('location')]"
+    },
+    {
+      "name": "[parameters('virtualNetworkName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "tags": {
+        "displayName": "FAMVNet"
+      },
+      "location": "[variables('location')]",
+      "apiVersion": "2015-06-15",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('VNETCIDR')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "FE",
+            "properties": {
+              "addressPrefix": "[parameters('Subnet_FE_CIDR')]"
+            }
+          },
+          {
+            "name": "UTIL",
+            "properties": {
+              "addressPrefix": "[parameters('Subnet_UTIL_CIDR')]"
+            }
+          },
+          {
+            "name": "BE",
+            "properties": {
+              "addressPrefix": "[parameters('Subnet_BE_CIDR')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "[variables('LBName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "tags": {
+        "displayName": "FAMLoadBalancer"
+      },
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "[variables('LBFE')]",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "[variables('LBBE')]"
+          }
+        ],
+        "inboundNatRules": [
+          {
+            "name": "[variables('TSRDPNAT')]",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[variables('lbFEConfigID')]"
+              },
+              "protocol": "tcp",
+              "frontendPort": "[parameters('rdpPort')]",
+              "backendPort": 3389,
+              "enableFloatingIP": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('TSNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "FAMTS_NIC"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+        "[concat('Microsoft.Network/loadBalancers/',variables('LBName'))]"
+      ],
+      "apiVersion": "[variables('apiVersion')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('TSNicIPAddress')]",
+              "subnet": {
+                "id": "[variables('TSSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[variables('BEAddressPoolID')]"
+                }
+              ],
+              "loadBalancerInboundNatRules": [
+                {
+                  "id": "[variables('RDPNATRuleID')]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('adNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "FAMAD_NIC"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
+        "[concat('Microsoft.Network/loadBalancers/',variables('LBName'))]"
+      ],
+      "apiVersion": "[variables('apiVersion')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('adNicIPAddress')]",
+              "subnet": {
+                "id": "[variables('adSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('adVMName')]",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "FAMAD_VM"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces',variables('adNicName'))]",
+        "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('adVMSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[variables('adVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2012-R2-Datacenter",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[toLower(concat(variables('adVMName'), '-osdisk'))]",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(variables('adVMName')),'-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "vhd": {
+                "uri": "[concat('http://', variables('storageAccountName'),'.blob.core.windows.net/vhds/', toLower(variables('adDataDisk')),'-1.vhd')]"
+              },
+              "name": "[concat(toLower(variables('adVMName')),'-data-disk1')]",
+              "caching": "None",
+              "createOption": "Empty",
+              "diskSizeGB": "[variables('adDataDiskSize')]",
+              "lun": 0
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('adNicName'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "name": "[concat(variables('adVMName'),'/CreateADForest')]",
+          "apiVersion": "[variables('apiVersion')]",
+          "location": "[variables('location')]",
+          "tags": {
+            "displayName": "FAMAD_VM/CreateADForest"
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', variables('adVMName'))]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.14",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "ModulesUrl": "[variables('adModulesURL')]",
+              "ConfigurationFunction": "[variables('adConfigurationFunction')]",
+              "Properties": {
+                "DomainName": "[parameters('domainName')]",
+                "AdminCreds": {
+                  "UserName": "[parameters('adminUsername')]",
+                  "Password": "PrivateSettingsRef:AdminPassword"
+                }
+              }
+            },
+            "protectedSettings": {
+              "Items": {
+                "AdminPassword": "[parameters('adminPassword')]"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('TSVMName')]",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "FAMTS_VM"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces',variables('TSNicName'))]",
+        "[resourceId('Microsoft.Compute/availabilitySets', variables('TSAvailabilitySetName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('TSVMSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('TSAvailabilitySetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[variables('TSVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2012-R2-Datacenter",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[toLower(concat(variables('TSVMName'),'-osdisk'))]",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageAccountName'),'.blob.core.windows.net/vhds/',toLower(variables('TSVMName')),'-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "vhd": {
+                "uri": "[concat('http://', variables('storageAccountName'),'.blob.core.windows.net/vhds/', variables('TSDataDisk'),'.vhd')]"
+              },
+              "name": "[variables('TSDataDisk')]",
+              "caching": "None",
+              "createOption": "Empty",
+              "diskSizeGB": "[variables('TSDataDiskSize')]",
+              "lun": 0
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('TSNicName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[toLower(concat(variables('TSVMName'), '/DataDriveConfig'))]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('TSVMName'))]"
+      ],
+      "tags": {
+        "displayName": "FAMTS_VM/DataDriveConfig"
+      },
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.4",
+        "settings": {
+          "fileUris": [
+            "[concat(parameters('assetLocation'),'Scripts/InitDataDrive_E.ps1')]"
+          ],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -file InitDataDrive_E.ps1"
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[toLower(concat(variables('TSVMName'), '/JoinDomain'))]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('TSVMName'), '/extensions/DataDriveConfig')]"
+      ],
+      "tags": {
+        "displayName": "FAMTS_VM/JoinDomain"
+      },
+      "properties": {
+        "protectedsettings": {
+          "Password": "[parameters('adminPassword')]"
+        },
+        "publisher": "Microsoft.Compute",
+        "settings": {
+          "Name": "[parameters('domainName')]",
+          "User": "[concat(parameters('domainName'), '\\', parameters('adminUsername'))]",
+          "Restart": "true",
+          "Options": "1"
+        },
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.0"
+      }
+    },
+    {
+      "name": "UpdateVNetDNS",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('adVMName'),'/extensions/CreateADForest')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vnetDNSTemplateUri')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[variables('location')]"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('virtualNetworkName')]"
+          },
+          "VNETCIDR": {
+            "value": "[parameters('VNETCIDR')]"
+          },
+          "Subnet_FE_CIDR": {
+            "value": "[parameters('Subnet_FE_CIDR')]"
+          },
+          "Subnet_BE_CIDR": {
+            "value": "[parameters('Subnet_BE_CIDR')]"
+          },
+          "Subnet_UTIL_CIDR": {
+            "value": "[parameters('Subnet_UTIL_CIDR')]"
+          },
+          "DNSServerAddress": {
+            "value": [
+              "[parameters('adNicIPAddress')]"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

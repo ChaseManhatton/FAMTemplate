@@ -1,0 +1,76 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "Description": "The region to deploy the resources into"
+      }
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "Description": "The name of the Virtual Network to Create"
+      }
+    },
+    "VNETCIDR": {
+      "type": "string"
+    },
+    "Subnet_FE_CIDR": {
+      "type": "string"
+    },
+    "Subnet_BE_CIDR": {
+      "type": "string"
+    },
+    "Subnet_UTIL_CIDR": {
+      "type": "string"
+    },
+    "DNSServerAddress": {
+      "type": "array",
+      "metadata": {
+        "Description": "The DNS address(es) of the DNS Server(s) used by the VNET"
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "[parameters('virtualNetworkName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[parameters('location')]",
+      "apiVersion": "2015-06-15",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('VNETCIDR')]"
+          ]
+        },
+        "dhcpOptions": {
+          "dnsServers": [
+            "[parameters('DNSServerAddress')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "FE",
+            "properties": {
+              "addressPrefix": "[parameters('Subnet_FE_CIDR')]"
+            }
+          },
+          {
+            "name": "UTIL",
+            "properties": {
+              "addressPrefix": "[parameters('Subnet_UTIL_CIDR')]"
+            }
+          },
+          {
+            "name": "BE",
+            "properties": {
+              "addressPrefix": "[parameters('Subnet_BE_CIDR')]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
