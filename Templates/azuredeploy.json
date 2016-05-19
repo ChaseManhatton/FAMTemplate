@@ -166,12 +166,12 @@
       "metadata": {
         "description": "The location of resources such as templates and DSC modules that the script is dependent"
       },
-      "defaultValue": "https://raw.githubusercontent.com/ChaseManhatton/FAMNetwork/master/"
+      "defaultValue": "https://raw.githubusercontent.com/ChaseManhatton/FAMTemplate/master/"
     }
   },
   "variables": {
     "location": "[resourceGroup().location]",
-    "storageAccountName": "[toLower(concat(parameters('VMPrefix'), '_Storage'))]",
+    "storageAccountName": "[toLower(concat(parameters('VMPrefix'), 'Storage'))]",
     "LBFE": "LBFE",
     "LBBE": "LBBE",
     "TSRDPNAT": "[concat(parameters('VMPrefix'), 'TSRDP')]",
@@ -198,7 +198,7 @@
     "TSDataDisk": "[toLower(concat(variables('TSVMName'), '-datadisk-1'))]",
     "adDataDiskSize": 100,
     "TSDataDiskSize": 100,
-    "vnetDNSTemplateUri": "[concat(parameters('assetLocation'),'vnet-with-dns.json')]",
+    "vnetDNSTemplateUri": "[concat(parameters('assetLocation'),'Templates/vnet-with-dns.json')]",
     "adModulesURL": "[concat(parameters('quickStartAssetLocation'),'CreateADPDC.ps1.zip')]",
     "adConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC",
     "apiVersion": "2015-06-15"
@@ -581,6 +581,7 @@
       "name": "[toLower(concat(variables('TSVMName'), '/JoinDomain'))]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
+        "Microsoft.Resources/deployments/UpdateVNetDNS",
         "[concat('Microsoft.Compute/virtualMachines/', variables('TSVMName'), '/extensions/DataDriveConfig')]"
       ],
       "tags": {
