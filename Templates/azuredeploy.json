@@ -569,9 +569,9 @@
         "typeHandlerVersion": "1.4",
         "settings": {
           "fileUris": [
-            "[concat(parameters('assetLocation'),'Scripts/InitDataDrive_E.ps1')]"
+            "[concat(parameters('assetLocation'),'Scripts/InitDataDrive_F.ps1')]"
           ],
-          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -file InitDataDrive_E.ps1"
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -file InitDataDrive_F.ps1"
         }
       }
     },
