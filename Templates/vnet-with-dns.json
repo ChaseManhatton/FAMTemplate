@@ -27,9 +27,9 @@
       "type": "string"
     },
     "DNSServerAddress": {
-      "type": "array",
+      "type": "string",
       "metadata": {
-        "Description": "The DNS address(es) of the DNS Server(s) used by the VNET"
+        "Description": "The primary DNS address to be used by the VNET.  Should be the first static IP we assigned for the AD server(s)."
       }
     }
   },
