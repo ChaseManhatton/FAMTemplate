@@ -33,6 +33,7 @@
     </None>
     <Content Include="Scripts\Deploy-AzureResourceGroup.ps1" />
     <None Include="Scripts\InitDataDrive_F.ps1" />
+    <None Include="Templates\azuredeploy_sql_ag.json" />
     <None Include="Templates\vnet-with-dns.json" />
   </ItemGroup>
   <ItemGroup>
