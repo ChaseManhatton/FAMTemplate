@@ -337,7 +337,8 @@
       },
       "dependsOn": [
         "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]",
-        "[concat('Microsoft.Network/loadBalancers/',variables('LBName'))]"
+        "[concat('Microsoft.Network/loadBalancers/',variables('LBName'))]",
+        "Microsoft.Resources/deployments/UpdateVNetDNS"
       ],
       "apiVersion": "[variables('apiVersion')]",
       "properties": {
@@ -581,7 +582,6 @@
       "name": "[toLower(concat(variables('TSVMName'), '/JoinDomain'))]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "Microsoft.Resources/deployments/UpdateVNetDNS",
         "[concat('Microsoft.Compute/virtualMachines/', variables('TSVMName'), '/extensions/DataDriveConfig')]"
       ],
       "tags": {
