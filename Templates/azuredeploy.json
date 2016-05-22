@@ -635,9 +635,7 @@
             "value": "[parameters('Subnet_UTIL_CIDR')]"
           },
           "DNSServerAddress": {
-            "value": [
-              "[parameters('adNicIPAddress')]"
-            ]
+            "value": "[parameters('adNicIPAddress')]"
           }
         }
       }
