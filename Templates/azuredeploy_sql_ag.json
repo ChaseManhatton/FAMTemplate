@@ -352,7 +352,7 @@
             ]
           },
           "dnsServers": {
-            "value": [ "[parameters('existingPrimaryAdIpAddress')]", null ]
+            "value": [ "[parameters('existingPrimaryAdIpAddress')]" ]
           }
 
         }
@@ -397,7 +397,7 @@
             ]
           },
           "dnsServers": {
-            "value": [ "[parameters('existingPrimaryAdIpAddress')]", null ]
+            "value": [ "[parameters('existingPrimaryAdIpAddress')]" ]
           }
 
         }
@@ -443,7 +443,7 @@
             ]
           },
           "dnsServers": {
-            "value": [ "[parameters('existingPrimaryAdIpAddress')]", null ]
+            "value": [ "[parameters('existingPrimaryAdIpAddress')]" ]
           }
 
         }
