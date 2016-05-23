@@ -175,8 +175,8 @@
         "typeHandlerVersion": "2.8",
 		    "autoUpgradeMinorVersion": false,
         "settings": {
-          "wmfVersion": "5.0",
-		  "modulesUrl": "[variables('sqlAOPrepareModulesURL')]",
+          "wmfVersion": "latest",
+          "modulesUrl": "[variables('sqlAOPrepareModulesURL')]",
           "configurationFunction": "[variables('sqlAOPrepareConfigurationFunction')]",
           "properties": {
             "domainName": "[parameters('domainName')]",
@@ -212,35 +212,35 @@
 				"type": "DSC",
 				"typeHandlerVersion": "2.8",
 				"autoUpgradeMinorVersion": false,
-				"settings": {
-					"wmfVersion": "5.0",
-					"modulesUrl": "[variables('createClusterModulesURL')]",
-					"configurationFunction": "[variables('createClusterConfigurationFunction')]",
-					"properties": {
-						"domainName": "[parameters('domainName')]",
-						"clusterName":"[variables('clusterName')]",
-						"sharePath":"[concat('\\\\',parameters('sqlwVMName'),'\\',parameters('sharePath'))]",
-						"nodes":["[concat(parameters('sqlVMNamePrefix'),'0')]","[concat(parameters('sqlVMNamePrefix'),'1')]"],
-						"sqlAlwaysOnEndpointName":"[parameters('sqlAlwaysOnEndpointName')]",
-						"sqlAlwaysOnAvailabilityGroupName":"[parameters('sqlAlwaysOnAvailabilityGroupName')]",
-						"sqlAlwaysOnAvailabilityGroupListenerName":"[parameters('sqlAlwaysOnAvailabilityGroupListenerName')]",
-						"sqlAlwaysOnAvailabilityGroupListenerPort":1433,
-						"lbName":"[parameters('sqlLBName')]",
-						"lbAddress":"[parameters('sqlLBIPAddress')]",
-						"primaryReplica":"[concat(parameters('sqlVMNamePrefix'),'1')]",
-						"secondaryReplica":"[concat(parameters('sqlVMNamePrefix'),'0')]",
-						"databaseNames":"[parameters('databaseNames')]",
-						"dnsServerName":"[parameters('dnsServerName')]",
-						"adminCreds":{
-							"userName": "[parameters('adminUserName')]",
-							"password": "PrivateSettingsRef:adminPassword"
-						},
-						"sQLServiceCreds":{
-							"userName": "[parameters('sqlServerServiceAccountUserName')]",
-							"password": "PrivateSettingsRef:sqlServerServiceAccountPassword"
-						}
-					}
-				},
+        "settings": {
+          "wmfVersion": "latest",
+          "modulesUrl": "[variables('createClusterModulesURL')]",
+          "configurationFunction": "[variables('createClusterConfigurationFunction')]",
+          "properties": {
+            "domainName": "[parameters('domainName')]",
+            "clusterName": "[variables('clusterName')]",
+            "sharePath": "[concat('\\\\',parameters('sqlwVMName'),'\\',parameters('sharePath'))]",
+            "nodes": [ "[concat(parameters('sqlVMNamePrefix'),'0')]", "[concat(parameters('sqlVMNamePrefix'),'1')]" ],
+            "sqlAlwaysOnEndpointName": "[parameters('sqlAlwaysOnEndpointName')]",
+            "sqlAlwaysOnAvailabilityGroupName": "[parameters('sqlAlwaysOnAvailabilityGroupName')]",
+            "sqlAlwaysOnAvailabilityGroupListenerName": "[parameters('sqlAlwaysOnAvailabilityGroupListenerName')]",
+            "sqlAlwaysOnAvailabilityGroupListenerPort": 1433,
+            "lbName": "[parameters('sqlLBName')]",
+            "lbAddress": "[parameters('sqlLBIPAddress')]",
+            "primaryReplica": "[concat(parameters('sqlVMNamePrefix'),'1')]",
+            "secondaryReplica": "[concat(parameters('sqlVMNamePrefix'),'0')]",
+            "databaseNames": "[parameters('databaseNames')]",
+            "dnsServerName": "[parameters('dnsServerName')]",
+            "adminCreds": {
+              "userName": "[parameters('adminUserName')]",
+              "password": "PrivateSettingsRef:adminPassword"
+            },
+            "sQLServiceCreds": {
+              "userName": "[parameters('sqlServerServiceAccountUserName')]",
+              "password": "PrivateSettingsRef:sqlServerServiceAccountPassword"
+            }
+          }
+        },
 				"protectedSettings": {
 					"items": {
 						"adminPassword": "[parameters('adminPassword')]",
