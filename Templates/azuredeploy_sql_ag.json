@@ -281,7 +281,8 @@
           "vmNamePrefix": { "value": "[variables('sqlClusterVmNamePrefix')]" },
           "sqlLBIPAddress": { "value": "[parameters('sqlLBIPAddress')]" },
           "vmSize": { "value": "[parameters('sqlVMSize')]" },
-          "availabilitySetName": { "value": "[variables('sqlAvailabilitySetName')]" }
+          "availabilitySetName": { "value": "[variables('sqlAvailabilitySetName')]" },
+          "location": { "value": "[resourceGroup().location]" }
         }
       }
     },
@@ -307,7 +308,8 @@
           "storageAccountType": { "value": "[parameters('storageAccountType')]" },
           "vmNamePrefix": { "value": "[variables('sqlWitnessVmNamePrefix')]" },
           "vmSize": { "value": "[parameters('sqlWitnessVMSize')]" },
-          "availabilitySetName": { "value": "[variables('sqlAvailabilitySetName')]" }
+          "availabilitySetName": { "value": "[variables('sqlAvailabilitySetName')]" },
+          "location": { "value": "[resourceGroup().location]" }
         }
       }
     },
@@ -326,6 +328,9 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
+          "location": {
+            "value": "[resourceGroup().location]"
+          },
           "nicName": {
             "value": "[variables('sqlwNicName')]"
           },
@@ -363,6 +368,9 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
+          "location": {
+            "value": "[resourceGroup().location]"
+          },
           "nicName": {
             "value": "[variables('sqlNicName1')]"
           },
@@ -375,11 +383,11 @@
                   "subnet": {
                     "id": "[variables('sqlSubnetRef')]"
                   },
-                "loadBalancerBackendAddressPools": [
-                  {
-                    "id":"[variables('sqlBEAddressPoolID')]"
-                  }
-		 ]
+                  "loadBalancerBackendAddressPools": [
+                    {
+                      "id": "[variables('sqlBEAddressPoolID')]"
+                    }
+                  ]
                 }
               }
             ]
@@ -406,6 +414,9 @@
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
+          "location": {
+            "value": "[resourceGroup().location]"
+          },
           "nicName": {
             "value": "[variables('sqlNicName2')]"
           },
@@ -418,11 +429,11 @@
                   "subnet": {
                     "id": "[variables('sqlSubnetRef')]"
                   },
-                "loadBalancerBackendAddressPools": [
-                  {
-                    "id":"[variables('sqlBEAddressPoolID')]"
-                  }
-		 ]
+                  "loadBalancerBackendAddressPools": [
+                    {
+                      "id": "[variables('sqlBEAddressPoolID')]"
+                    }
+                  ]
                 }
               }
             ]
@@ -453,7 +464,8 @@
           "sharePath": { "value": "[concat(parameters('vmNamePrefix'),'-fsw')]" },
           "adminUsername": { "value": "[parameters('adminUsername')]" },
           "adminPassword": { "value": "[parameters('adminPassword')]" },
-          "assetLocation": { "value": "[parameters('assetLocation')]" }
+          "assetLocation": { "value": "[parameters('assetLocation')]" },
+          "location": { "value": "[resourceGroup().location]" }
         }
       }
     },
@@ -488,7 +500,8 @@
           "assetLocation": { "value": "[parameters('assetLocation')]" },
           "sqlAlwaysOnEndpointName": { "value": "[variables('sqlAOEPName')]" },
           "sqlAlwaysOnAvailabilityGroupName": { "value": "[variables('sqlAOAGName')]" },
-          "sqlAlwaysOnAvailabilityGroupListenerName": { "value": "[variables('sqlAOListenerName')]" }
+          "sqlAlwaysOnAvailabilityGroupListenerName": { "value": "[variables('sqlAOListenerName')]" },
+          "location": { "value": "[resourceGroup().location]" }
         }
       }
     }
