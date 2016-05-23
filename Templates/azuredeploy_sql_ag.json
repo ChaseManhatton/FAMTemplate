@@ -183,6 +183,15 @@
       },
       "defaultValue": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/sql-server-2014-alwayson-dsc"
     },
+
+    "customAssetLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "The location of resources such as templates and DSC modules that the script is dependent"
+      },
+      "defaultValue": "https://raw.githubusercontent.com/ChaseManhatton/FAMTemplate/master/"
+    },
+
     "locationForTemplates": {
       "type": "string",
       "defaultValue": "Central US"
@@ -239,7 +248,7 @@
     "sqlwVMName": "[concat(variables('sqlWitnessVmNamePrefix'),'0')]",
 
     "deploySqlAlwaysOn": "deploySqlAlwaysOn",
-    "deploySqlAlwaysOnTemplateUrl": "[concat(parameters('assetLocation'),'/DeploySqlAlwaysOn.json')]",
+    "deploySqlAlwaysOnTemplateUrl": "[concat(parameters('customAssetLocation'),'Templates/DeploySqlAlwaysOn.json')]",
 
     "sqlClusterVmNamePrefix": "[concat(parameters('vmNamePrefix'),'-SqlC-')]",
     "sqlCVMName1": "[concat(variables('sqlClusterVmNamePrefix'),'0')]",
